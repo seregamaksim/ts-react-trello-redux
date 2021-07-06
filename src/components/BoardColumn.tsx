@@ -2,34 +2,34 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import BoardColumnCard from './BoardColumnCard';
 import BoardColumnTitle from './BoardColumnTitle';
-import { TBoardColumn, TCard, TComment } from '../App';
+import { TBoardColumn, TCard, TComment } from '../types/types';
+import { useDispatch, useSelector } from 'react-redux';
+import { removeColumn } from '../store/columns';
+import { getCardsByColumnId, addCard } from '../store/cards';
 
 interface IBoardColumnProps {
   data: TBoardColumn;
-  removeColumn: (id: number) => void;
-  addCard: (data: TCard) => void;
-  removeCard: (id: number) => void;
-  getCardsByIdColumn: (id: number) => TCard[];
   openModal: (arg: boolean) => void;
   setDataCardModal: (data: TCard) => void;
-  getCommentsById: (id: number) => TComment[];
-  renameColumn: (id: number, title: string) => void;
   className?: string;
 }
 
 export default function BoardColumn(props: IBoardColumnProps) {
-  const cardsCurrentColumn = props.getCardsByIdColumn(props.data.id);
+  const cardsCurrentColumn = useSelector(getCardsByColumnId(props.data.id));
   const [newCardValue, setNewCardValue] = useState('');
   const [isAddCardPopupOpen, setIsAddCardPopupOpen] = useState(false);
+  const dispatch = useDispatch();
 
   function addNewCard(e: React.SyntheticEvent): void {
     e.preventDefault();
     if (newCardValue.length > 0) {
-      props.addCard({
-        id: Date.now(),
-        title: newCardValue,
-        columnId: props.data.id,
-      });
+      dispatch(
+        addCard({
+          id: Date.now(),
+          title: newCardValue,
+          columnId: props.data.id,
+        })
+      );
       setNewCardValue('');
       setIsAddCardPopupOpen(false);
     }
@@ -39,21 +39,18 @@ export default function BoardColumn(props: IBoardColumnProps) {
     <BoardColumnItem className={props.className}>
       <div>
         <BoardColumnHeader>
-          <BoardColumnTitle
-            data={props.data}
-            renameColumn={props.renameColumn}
-          />
-          <button onClick={() => props.removeColumn(props.data.id)}>X</button>
+          <BoardColumnTitle data={props.data} />
+          <button onClick={() => dispatch(removeColumn(props.data.id))}>
+            X
+          </button>
         </BoardColumnHeader>
         <BoardColumnCardsList>
           {cardsCurrentColumn.map((item) => (
             <StyledBoardColumnCard
               key={item.id}
               data={item}
-              removeCard={props.removeCard}
               openModal={props.openModal}
               setDataCardModal={props.setDataCardModal}
-              getCommentsById={props.getCommentsById}
             />
           ))}
         </BoardColumnCardsList>

@@ -1,45 +1,34 @@
 import BoardColumn from './BoardColumn';
 import AddColumnBtn from './AddColumnBtn';
 import styled from 'styled-components';
-import { TBoardColumn, TCard, TComment } from '../App';
+import { TBoardColumn, TCard, TComment } from '../types/types';
+import { useSelector } from 'react-redux';
+import { selectColumns } from '../store/columns';
 
 interface IBoardProps {
-  boardColumns: TBoardColumn[];
-  addColumn: (data: TBoardColumn) => void;
-  addCard: (data: TCard) => void;
-  removeColumn: (id: number) => void;
-  removeCard: (id: number) => void;
-  getCardsByIdColumn: (id: number) => TCard[];
   openModal: (arg: boolean) => void;
   setDataCard: (data: TCard) => void;
-  getCommentsById: (id: number) => TComment[];
-  renameColumn: (id: number, title: string) => void;
 }
 
 export default function Board(props: IBoardProps) {
+  const boardColumns = useSelector(selectColumns);
   return (
     <BoardWrap>
       <BoardColumns>
-        {props.boardColumns &&
-          props.boardColumns.map((item) => {
+        {boardColumns &&
+          boardColumns.map((item) => {
             return (
               <StyledBoardColumn
                 key={item.id}
                 data={item}
-                removeColumn={props.removeColumn}
-                getCardsByIdColumn={props.getCardsByIdColumn}
-                addCard={props.addCard}
-                removeCard={props.removeCard}
                 openModal={props.openModal}
                 setDataCardModal={props.setDataCard}
-                getCommentsById={props.getCommentsById}
-                renameColumn={props.renameColumn}
               />
             );
           })}
       </BoardColumns>
 
-      <AddColumnBtn addHandle={props.addColumn} />
+      <AddColumnBtn />
     </BoardWrap>
   );
 }

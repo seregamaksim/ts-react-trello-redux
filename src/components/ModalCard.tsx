@@ -1,47 +1,44 @@
 import { FormEvent, useState } from 'react';
 import styled from 'styled-components';
-import { TBoardColumn, TCard, TComment, TDescription } from '../App';
+import { TBoardColumn, TCard, TComment, TDescription } from '../types/types';
 import ModalCardTitle from './ModalCardTitle';
 import Comment from './Comment';
 import Description from './Description';
 import AddForm from './AddForm';
 import isEmpty from '../helpers/isEmpty';
+import { getColumnById } from '../store/columns';
+import { useDispatch, useSelector } from 'react-redux';
+import { addComment, getCommentsById } from '../store/comments';
+import { addDescription, getDescriptionById } from '../store/descriptions';
 
 interface IModalCardProps {
   dataCard: TCard;
   isOpen: boolean;
   userName: string;
   setIsOpenCard: (arg: boolean) => void;
-  addComment: (data: TComment) => void;
-  getCommentsById: (id: number) => TComment[];
-  removeComment: (id: number) => void;
-  renameCard: (id: number, title: string) => void;
-  changeComment: (id: number, body: string) => void;
-  addDescription: (data: TDescription) => void;
-  removeDescription: (id: number) => void;
-  getDescriptionById: (id: number) => TDescription;
-  getColumnById: (id: number) => TBoardColumn;
-  changeDescription: (id: number, body: string) => void;
 }
 interface ModalProps {
-  readonly $isOpen: boolean;
+  $isOpen: boolean;
 }
 export default function ModalCard(props: IModalCardProps) {
   const [commentVal, setCommentVal] = useState('');
   const [descrText, setDescrText] = useState('');
-  const comments = props.getCommentsById(props.dataCard.id);
-  const description = props.getDescriptionById(props.dataCard.id);
-  const columnInfo = props.getColumnById(props.dataCard.columnId);
+  const comments = useSelector(getCommentsById(props.dataCard.id));
+  const description = useSelector(getDescriptionById(props.dataCard.id));
+  const columnInfo = useSelector(getColumnById(props.dataCard.columnId));
+  const dispatch = useDispatch();
 
   function submitComment(e: FormEvent) {
     e.preventDefault();
     if (commentVal.length > 0) {
       if (props.dataCard) {
-        props.addComment({
-          id: Date.now(),
-          body: commentVal,
-          cardId: props.dataCard.id,
-        });
+        dispatch(
+          addComment({
+            id: Date.now(),
+            body: commentVal,
+            cardId: props.dataCard.id,
+          })
+        );
       }
       setCommentVal('');
     }
@@ -50,11 +47,13 @@ export default function ModalCard(props: IModalCardProps) {
     e.preventDefault();
     if (descrText.length > 0) {
       if (props.dataCard) {
-        props.addDescription({
-          id: Date.now(),
-          body: descrText,
-          cardId: props.dataCard.id,
-        });
+        dispatch(
+          addDescription({
+            id: Date.now(),
+            body: descrText,
+            cardId: props.dataCard.id,
+          })
+        );
       }
       setDescrText('');
     }
@@ -63,10 +62,7 @@ export default function ModalCard(props: IModalCardProps) {
     <Modal $isOpen={props.isOpen}>
       <div className="modal__wrapper">
         <div>
-          <ModalCardTitle
-            dataCard={props.dataCard}
-            renameCard={props.renameCard}
-          />
+          <ModalCardTitle dataCard={props.dataCard} />
           <p>{`Inside a column ${columnInfo.title}`}</p>
           <ModalCardAuthor>
             Author: <span>{props.userName}</span>
@@ -84,13 +80,7 @@ export default function ModalCard(props: IModalCardProps) {
         <div>
           <ModalCardSectionTitle>Description:</ModalCardSectionTitle>
           <DescrWrapper>
-            {!isEmpty(description) && (
-              <Description
-                data={description}
-                removeDescription={props.removeDescription}
-                changeDescription={props.changeDescription}
-              />
-            )}
+            {!isEmpty(description) && <Description data={description} />}
           </DescrWrapper>
           {isEmpty(description) && (
             <AddForm
@@ -111,8 +101,6 @@ export default function ModalCard(props: IModalCardProps) {
                   key={item.id}
                   data={item}
                   userName={props.userName}
-                  removeComment={props.removeComment}
-                  changeComment={props.changeComment}
                 />
               );
             })}

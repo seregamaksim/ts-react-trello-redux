@@ -1,17 +1,18 @@
 import styled from 'styled-components';
 import TextareaAutosize from 'react-textarea-autosize';
-import { TDescription } from '../App';
+import { TDescription } from '../types/types';
 import { useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { changeDescription, removeDescription } from '../store/descriptions';
 
 interface IDescriptionProps {
   data: TDescription;
-  removeDescription: (id: number) => void;
-  changeDescription: (id: number, body: string) => void;
 }
 
 export default function Description(props: IDescriptionProps) {
   const [newDescrVal, setNewDescrVal] = useState(props.data.body);
   const textTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const dispatch = useDispatch();
 
   function onBlurHandler(e: React.SyntheticEvent) {
     if (newDescrVal.length === 0) {
@@ -21,7 +22,7 @@ export default function Description(props: IDescriptionProps) {
       return false;
     }
     if (newDescrVal !== props.data.body && newDescrVal.length !== 0) {
-      props.changeDescription(props.data.id, newDescrVal);
+      dispatch(changeDescription({ id: props.data.id, body: newDescrVal }));
     }
   }
   function onKeyHandler(e: React.KeyboardEvent) {
@@ -34,7 +35,7 @@ export default function Description(props: IDescriptionProps) {
         return false;
       }
       if (newDescrVal !== props.data.body) {
-        props.changeDescription(props.data.id, newDescrVal);
+        dispatch(changeDescription({ id: props.data.id, body: newDescrVal }));
         if (textTextareaRef.current) {
           textTextareaRef.current.blur();
         }
@@ -58,7 +59,7 @@ export default function Description(props: IDescriptionProps) {
       />
       <DescriptionDeleteBtn
         onClick={() => {
-          props.removeDescription(props.data.id);
+          dispatch(removeDescription(props.data.id));
         }}
       >
         X

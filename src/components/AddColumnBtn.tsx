@@ -1,20 +1,26 @@
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import styled from 'styled-components';
-import { TBoardColumn } from '../App';
+import { addColumn } from '../store/columns';
+import { Field, Form } from 'react-final-form';
+import { FormApi } from 'final-form';
 
-interface IAddColumnProps {
-  addHandle: (data: TBoardColumn) => void;
+interface IAddColumnProps {}
+
+interface IFormAddColumnValues {
+  columnTitle: string;
 }
-
 export default function AddColumnBtn(props: IAddColumnProps) {
-  const [columnTitle, setColumnTitle] = useState('');
   const [isOpenPopup, setIsOpenPopup] = useState(false);
+  const dispatch = useDispatch();
 
-  function addColumn(e: React.SyntheticEvent): void {
-    e.preventDefault();
-    if (columnTitle.length > 0) {
-      props.addHandle({ id: Date.now(), title: columnTitle });
-      setColumnTitle('');
+  function addNewColumn(
+    e: IFormAddColumnValues,
+    form: { reset: () => void }
+  ): void {
+    if (e.columnTitle.length > 0) {
+      dispatch(addColumn({ id: Date.now(), title: e.columnTitle }));
+      form.reset();
     }
   }
 
@@ -36,16 +42,24 @@ export default function AddColumnBtn(props: IAddColumnProps) {
           >
             X
           </AddColumnPopupClose>
-          <AddColumnPopupForm onSubmit={addColumn}>
-            <AddColumnPopupInput
-              type="text"
-              name="column-title"
-              placeholder="Enter column name"
-              value={columnTitle}
-              onChange={(e) => setColumnTitle(e.target.value)}
-            />
-            <AddColumnPopupBtn>Add column</AddColumnPopupBtn>
-          </AddColumnPopupForm>
+          <Form
+            onSubmit={addNewColumn}
+            render={({ handleSubmit }) => {
+              return (
+                <AddColumnPopupForm onSubmit={handleSubmit}>
+                  <AddColumnPopupInput
+                    type="text"
+                    name="columnTitle"
+                    placeholder="Enter column name"
+                    component="input"
+                  />
+                  <AddColumnPopupBtn type="submit">
+                    Add column
+                  </AddColumnPopupBtn>
+                </AddColumnPopupForm>
+              );
+            }}
+          />
         </AddColumnPopup>
       )}
     </AddColumnWrapper>
@@ -87,7 +101,8 @@ const AddColumnPopupForm = styled.form`
   flex-direction: column;
   align-items: flex-start;
 `;
-const AddColumnPopupInput = styled.input`
+
+const AddColumnPopupInput = styled(Field)`
   display: block;
   width: 100%;
   margin-bottom: 10px;

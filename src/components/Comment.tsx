@@ -1,19 +1,21 @@
 import { useRef, useState } from 'react';
 import styled from 'styled-components';
-import { TComment } from '../App';
+import { TComment } from '../types/types';
 import TextareaAutosize from 'react-textarea-autosize';
+import { useDispatch } from 'react-redux';
+import { changeComment, removeComment } from '../store/comments';
 
 interface ICommentProps {
   data: TComment;
   userName: string;
-  removeComment: (id: number) => void;
-  changeComment: (id: number, body: string) => void;
   className?: string;
 }
 
 export default function Comment(props: ICommentProps) {
   const [commentText, setCommentText] = useState(props.data.body);
   const textTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const dispatch = useDispatch();
+
   function onBlurHandler(e: React.SyntheticEvent) {
     if (commentText.length === 0) {
       if (textTextareaRef.current) {
@@ -22,7 +24,7 @@ export default function Comment(props: ICommentProps) {
       return false;
     }
     if (commentText !== props.data.body && commentText.length !== 0) {
-      props.changeComment(props.data.id, commentText);
+      dispatch(changeComment({ id: props.data.id, body: commentText }));
     }
   }
   function onKeyHandler(e: React.KeyboardEvent) {
@@ -35,7 +37,7 @@ export default function Comment(props: ICommentProps) {
         return false;
       }
       if (commentText !== props.data.body) {
-        props.changeComment(props.data.id, commentText);
+        dispatch(changeComment({ id: props.data.id, body: commentText }));
         if (textTextareaRef.current) {
           textTextareaRef.current.blur();
         }
@@ -63,7 +65,7 @@ export default function Comment(props: ICommentProps) {
       <CommentAuthor>
         Author: <span>{props.userName}</span>
       </CommentAuthor>
-      <CommentDeleteBtn onClick={() => props.removeComment(props.data.id)}>
+      <CommentDeleteBtn onClick={() => dispatch(removeComment(props.data.id))}>
         X
       </CommentDeleteBtn>
     </CommentItem>

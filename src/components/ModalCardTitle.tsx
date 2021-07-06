@@ -1,16 +1,19 @@
 import React, { useRef, useState } from 'react';
 import styled from 'styled-components';
-import { TCard } from '../App';
+import { TCard } from '../types/types';
 import TextareaAutosize from 'react-textarea-autosize';
+import { renameCard } from '../store/cards';
+import { useDispatch } from 'react-redux';
 
 interface IModalCardTitleProps {
   dataCard: TCard;
-  renameCard: (id: number, title: string) => void;
 }
 
 export default function ModalCardTitle(props: IModalCardTitleProps) {
   const [newCardTitle, setNewCardTitle] = useState(props.dataCard.title);
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const dispatch = useDispatch();
+
   function onBlurHandler(e: React.SyntheticEvent) {
     if (newCardTitle.length === 0) {
       if (titleTextareaRef.current) {
@@ -19,7 +22,7 @@ export default function ModalCardTitle(props: IModalCardTitleProps) {
       return false;
     }
     if (newCardTitle !== props.dataCard.title && newCardTitle.length !== 0) {
-      props.renameCard(props.dataCard.id, newCardTitle);
+      dispatch(renameCard({ id: props.dataCard.id, title: newCardTitle }));
     }
   }
   function onKeyHandler(e: React.KeyboardEvent) {
@@ -32,7 +35,7 @@ export default function ModalCardTitle(props: IModalCardTitleProps) {
         return false;
       }
       if (newCardTitle !== props.dataCard.title) {
-        props.renameCard(props.dataCard.id, newCardTitle);
+        dispatch(renameCard({ id: props.dataCard.id, title: newCardTitle }));
         if (titleTextareaRef.current) {
           titleTextareaRef.current.blur();
         }

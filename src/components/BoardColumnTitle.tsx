@@ -1,16 +1,18 @@
 import { useRef, useState } from 'react';
 import styled from 'styled-components';
-import { TBoardColumn } from '../App';
+import { TBoardColumn } from '../types/types';
 import TextareaAutosize from 'react-textarea-autosize';
+import { renameColumn } from '../store/columns/index';
+import { useDispatch } from 'react-redux';
 
 interface IBoardColumnTitleProps {
   data: TBoardColumn;
-  renameColumn: (id: number, title: string) => void;
 }
 
 export default function BoardColumnTitle(props: IBoardColumnTitleProps) {
   const [newColumnTitle, setNewColumnTitle] = useState(props.data.title);
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const dispatch = useDispatch();
 
   function onBlurHandler(e: React.SyntheticEvent) {
     if (newColumnTitle.length === 0) {
@@ -20,7 +22,7 @@ export default function BoardColumnTitle(props: IBoardColumnTitleProps) {
       return false;
     }
     if (newColumnTitle !== props.data.title && newColumnTitle.length !== 0) {
-      props.renameColumn(props.data.id, newColumnTitle);
+      dispatch(renameColumn({ id: props.data.id, title: newColumnTitle }));
     }
   }
   function onKeyHandler(e: React.KeyboardEvent): void | false {
@@ -33,7 +35,7 @@ export default function BoardColumnTitle(props: IBoardColumnTitleProps) {
         return false;
       }
       if (newColumnTitle !== props.data.title) {
-        props.renameColumn(props.data.id, newColumnTitle);
+        dispatch(renameColumn({ id: props.data.id, title: newColumnTitle }));
         if (titleTextareaRef.current) {
           titleTextareaRef.current.blur();
         }

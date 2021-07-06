@@ -1,9 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
 import columnsReducer from './columns/index';
+import cardsReducer from './cards/index';
+import commentsReducer from './comments/index';
+import descriptionsReducer from './descriptions/index';
 
 export const store = configureStore({
   reducer: {
     columns: columnsReducer,
+    cards: cardsReducer,
+    comments: commentsReducer,
+    descriptions: descriptionsReducer,
   },
 });
 
