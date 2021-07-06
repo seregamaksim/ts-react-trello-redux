@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react';
+import { Form, Field } from 'react-final-form';
 
 interface ILoginModalProps {
   setUserName: (val: string) => void;
 }
-
+interface IFormValues {
+  userName: string;
+}
+interface IFormParams {
+  reset: () => void;
+}
 export default function LoginModal(props: ILoginModalProps) {
-  const [inputNameVal, setInputNameVal] = useState<string>('');
+  // const [inputNameVal, setInputNameVal] = useState<string>('');
 
-  function submitForm(e: React.SyntheticEvent): void {
-    e.preventDefault();
-    props.setUserName(inputNameVal);
-    localStorage.setItem('userName', inputNameVal);
-    setInputNameVal('');
+  function submitForm(e: IFormValues, form: IFormParams): void {
+    // e.preventDefault();
+    props.setUserName(e.userName);
+    localStorage.setItem('userName', e.userName);
+    // setInputNameVal('');
+    form.reset();
   }
   useEffect(() => {
     const closeModal = (e: KeyboardEvent) => {
@@ -26,16 +33,22 @@ export default function LoginModal(props: ILoginModalProps) {
   return (
     <div className="modal active">
       <div className="modal__wrapper">
-        <form onSubmit={submitForm}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Enter your name"
-            value={inputNameVal}
-            onChange={(e) => setInputNameVal(e.target.value)}
-          />
-          <button type="submit">Submit</button>
-        </form>
+        <Form
+          onSubmit={submitForm}
+          render={({ handleSubmit }) => {
+            return (
+              <form onSubmit={handleSubmit}>
+                <Field
+                  component="input"
+                  type="text"
+                  name="userName"
+                  placeholder="Enter your name"
+                />
+                <button type="submit">Submit</button>
+              </form>
+            );
+          }}
+        />
       </div>
     </div>
   );

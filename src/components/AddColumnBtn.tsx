@@ -3,7 +3,6 @@ import { useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import { addColumn } from '../store/columns';
 import { Field, Form } from 'react-final-form';
-import { FormApi } from 'final-form';
 
 interface IAddColumnProps {}
 

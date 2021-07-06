@@ -17,45 +17,50 @@ interface IModalCardProps {
   userName: string;
   setIsOpenCard: (arg: boolean) => void;
 }
-interface ModalProps {
+interface IModalProps {
   $isOpen: boolean;
 }
+export interface ISubmitValues {
+  textarea: string;
+}
+export interface ISubmitFormParams {
+  reset: () => void;
+}
 export default function ModalCard(props: IModalCardProps) {
-  const [commentVal, setCommentVal] = useState('');
-  const [descrText, setDescrText] = useState('');
+  // const [commentVal, setCommentVal] = useState('');
+  // const [descrText, setDescrText] = useState('');
   const comments = useSelector(getCommentsById(props.dataCard.id));
   const description = useSelector(getDescriptionById(props.dataCard.id));
   const columnInfo = useSelector(getColumnById(props.dataCard.columnId));
   const dispatch = useDispatch();
 
-  function submitComment(e: FormEvent) {
-    e.preventDefault();
-    if (commentVal.length > 0) {
+  function submitComment(e: ISubmitValues, form: ISubmitFormParams) {
+    if (e.textarea.length > 0) {
       if (props.dataCard) {
         dispatch(
           addComment({
             id: Date.now(),
-            body: commentVal,
+            body: e.textarea,
             cardId: props.dataCard.id,
           })
         );
       }
-      setCommentVal('');
+
+      form.reset();
     }
   }
-  function submitDescription(e: FormEvent) {
-    e.preventDefault();
-    if (descrText.length > 0) {
+  function submitDescription(e: ISubmitValues, form: ISubmitFormParams) {
+    if (e.textarea.length > 0) {
       if (props.dataCard) {
         dispatch(
           addDescription({
             id: Date.now(),
-            body: descrText,
+            body: e.textarea,
             cardId: props.dataCard.id,
           })
         );
       }
-      setDescrText('');
+      form.reset();
     }
   }
   return (
@@ -85,8 +90,6 @@ export default function ModalCard(props: IModalCardProps) {
           {isEmpty(description) && (
             <AddForm
               submitHandler={submitDescription}
-              textAreaValue={descrText}
-              changeTextValue={setDescrText}
               buttonValue="Add description"
             />
           )}
@@ -105,21 +108,16 @@ export default function ModalCard(props: IModalCardProps) {
               );
             })}
           </CommentsList>
-          <AddForm
-            submitHandler={submitComment}
-            textAreaValue={commentVal}
-            changeTextValue={setCommentVal}
-            buttonValue="Add comment"
-          />
+          <AddForm submitHandler={submitComment} buttonValue="Add comment" />
         </div>
       </div>
     </Modal>
   );
 }
 
-const Modal = styled.div.attrs<ModalProps>(({ $isOpen }) => ({
+const Modal = styled.div.attrs<IModalProps>(({ $isOpen }) => ({
   className: $isOpen ? 'modal active' : 'modal',
-}))<ModalProps>``;
+}))<IModalProps>``;
 const ModalCardCloseBtn = styled.button`
   position: absolute;
   right: 10px;
