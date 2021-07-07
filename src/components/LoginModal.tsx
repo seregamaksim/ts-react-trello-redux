@@ -1,23 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Form, Field } from 'react-final-form';
+import { useDispatch } from 'react-redux';
+import { actions } from '../store/ducks';
+import { IFormParams } from '../types/types';
 
-interface ILoginModalProps {
-  setUserName: (val: string) => void;
-}
+interface ILoginModalProps {}
 interface IFormValues {
   userName: string;
 }
-interface IFormParams {
-  reset: () => void;
-}
 export default function LoginModal(props: ILoginModalProps) {
-  // const [inputNameVal, setInputNameVal] = useState<string>('');
-
-  function submitForm(e: IFormValues, form: IFormParams): void {
-    // e.preventDefault();
-    props.setUserName(e.userName);
-    localStorage.setItem('userName', e.userName);
-    // setInputNameVal('');
+  const dispatch = useDispatch();
+  function submitForm(val: IFormValues, form: IFormParams): void {
+    dispatch(actions.userName.addUserName(val.userName));
     form.reset();
   }
   useEffect(() => {

@@ -1,31 +1,31 @@
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import { removeCard } from '../store/cards';
-import { getCommentsById } from '../store/comments';
+import { actions, selectors } from '../store/ducks';
 import { TCard } from '../types/types';
 
 interface IBoardColumnCardProps {
   data: TCard;
-  openModal: (arg: boolean) => void;
-  setDataCardModal: (data: TCard) => void;
   className?: string;
 }
 
 export default function BoardColumnCard(props: IBoardColumnCardProps) {
-  const commentsCount = useSelector(getCommentsById(props.data.id)).length;
+  const commentsCount = useSelector(
+    selectors.comments.getCommentsById(props.data.id)
+  ).length;
 
   const dispatch = useDispatch();
 
   function openModal() {
-    props.setDataCardModal(props.data);
-
-    props.openModal(true);
+    dispatch(actions.modalCard.setDataCard(props.data));
+    dispatch(actions.modalCard.toggleOpen());
     document.body.style.overflow = 'hidden';
   }
   return (
     <CardItem className={props.className}>
       <CardItemLink onClick={openModal}></CardItemLink>
-      <CardItemRemove onClick={() => dispatch(removeCard(props.data.id))}>
+      <CardItemRemove
+        onClick={() => dispatch(actions.cards.removeCard(props.data.id))}
+      >
         X
       </CardItemRemove>
       <CardItemTitleWrap>

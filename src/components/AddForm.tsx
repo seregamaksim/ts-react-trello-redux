@@ -1,10 +1,11 @@
 import TextareaAutosize from 'react-textarea-autosize';
 import styled from 'styled-components';
 import { Field, Form } from 'react-final-form';
-import { ISubmitFormParams, ISubmitValues } from './ModalCard';
+import { ISubmitValues } from './ModalCard';
+import { IFormParams } from '../types/types';
 
 interface IAddFormProps {
-  submitHandler: (e: ISubmitValues, form: ISubmitFormParams) => void;
+  submitHandler: (val: ISubmitValues, form: IFormParams) => void;
   buttonValue: string;
 }
 

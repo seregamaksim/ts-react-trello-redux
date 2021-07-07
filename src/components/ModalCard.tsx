@@ -1,21 +1,16 @@
-import { FormEvent, useState } from 'react';
 import styled from 'styled-components';
-import { TBoardColumn, TCard, TComment, TDescription } from '../types/types';
+import { IFormParams, TCard } from '../types/types';
 import ModalCardTitle from './ModalCardTitle';
 import Comment from './Comment';
 import Description from './Description';
 import AddForm from './AddForm';
 import isEmpty from '../helpers/isEmpty';
-import { getColumnById } from '../store/columns';
+import { getColumnById } from '../store/columns/selectors';
+import { actions, selectors } from '../store/ducks';
 import { useDispatch, useSelector } from 'react-redux';
-import { addComment, getCommentsById } from '../store/comments';
-import { addDescription, getDescriptionById } from '../store/descriptions';
 
 interface IModalCardProps {
   dataCard: TCard;
-  isOpen: boolean;
-  userName: string;
-  setIsOpenCard: (arg: boolean) => void;
 }
 interface IModalProps {
   $isOpen: boolean;
@@ -23,93 +18,97 @@ interface IModalProps {
 export interface ISubmitValues {
   textarea: string;
 }
-export interface ISubmitFormParams {
-  reset: () => void;
-}
 export default function ModalCard(props: IModalCardProps) {
-  // const [commentVal, setCommentVal] = useState('');
-  // const [descrText, setDescrText] = useState('');
-  const comments = useSelector(getCommentsById(props.dataCard.id));
-  const description = useSelector(getDescriptionById(props.dataCard.id));
-  const columnInfo = useSelector(getColumnById(props.dataCard.columnId));
+  const openModal = useSelector(selectors.modalCard.selectIsOpen);
   const dispatch = useDispatch();
-
-  function submitComment(e: ISubmitValues, form: ISubmitFormParams) {
-    if (e.textarea.length > 0) {
-      if (props.dataCard) {
-        dispatch(
-          addComment({
-            id: Date.now(),
-            body: e.textarea,
-            cardId: props.dataCard.id,
-          })
-        );
+  const comments = useSelector(
+    selectors.comments.getCommentsById(props.dataCard.id)
+  );
+  const description = useSelector(
+    selectors.descriptions.getDescriptionById(props.dataCard.id)
+  );
+  const columnInfo = useSelector(getColumnById(props.dataCard.columnId));
+  const userName = useSelector(selectors.userName.selectUserName);
+  function submitComment(val: ISubmitValues, form: IFormParams) {
+    if (!isEmpty(val)) {
+      if (val.textarea.trim().length > 0) {
+        if (props.dataCard) {
+          dispatch(
+            actions.comments.addComment({
+              id: Date.now(),
+              body: val.textarea,
+              cardId: props.dataCard.id,
+            })
+          );
+        }
+        form.reset();
       }
-
-      form.reset();
     }
   }
-  function submitDescription(e: ISubmitValues, form: ISubmitFormParams) {
-    if (e.textarea.length > 0) {
-      if (props.dataCard) {
-        dispatch(
-          addDescription({
-            id: Date.now(),
-            body: e.textarea,
-            cardId: props.dataCard.id,
-          })
-        );
+  function submitDescription(val: ISubmitValues, form: IFormParams) {
+    if (!isEmpty(val)) {
+      if (val.textarea.trim().length > 0) {
+        if (props.dataCard) {
+          dispatch(
+            actions.descriptions.addDescription({
+              id: Date.now(),
+              body: val.textarea,
+              cardId: props.dataCard.id,
+            })
+          );
+        }
+        form.reset();
       }
-      form.reset();
     }
   }
   return (
-    <Modal $isOpen={props.isOpen}>
+    <Modal $isOpen={openModal}>
       <div className="modal__wrapper">
-        <div>
-          <ModalCardTitle dataCard={props.dataCard} />
-          <p>{`Inside a column ${columnInfo.title}`}</p>
-          <ModalCardAuthor>
-            Author: <span>{props.userName}</span>
-          </ModalCardAuthor>
-          <ModalCardCloseBtn
-            onClick={() => {
-              document.body.style.overflow = '';
-              props.setIsOpenCard(false);
-            }}
-          >
-            X
-          </ModalCardCloseBtn>
-        </div>
-        <hr />
-        <div>
-          <ModalCardSectionTitle>Description:</ModalCardSectionTitle>
-          <DescrWrapper>
-            {!isEmpty(description) && <Description data={description} />}
-          </DescrWrapper>
-          {isEmpty(description) && (
-            <AddForm
-              submitHandler={submitDescription}
-              buttonValue="Add description"
-            />
-          )}
-        </div>
-        <hr />
-        <div>
-          <ModalCardSectionTitle>Comments:</ModalCardSectionTitle>
-          <CommentsList>
-            {comments.map((item) => {
-              return (
-                <StyledComment
-                  key={item.id}
-                  data={item}
-                  userName={props.userName}
+        {props.dataCard && (
+          <div>
+            <div>
+              <ModalCardTitle dataCard={props.dataCard} />
+              <p>{`Inside a column ${columnInfo.title}`}</p>
+              <ModalCardAuthor>
+                Author: <span>{userName}</span>
+              </ModalCardAuthor>
+              <ModalCardCloseBtn
+                onClick={() => {
+                  document.body.style.overflow = '';
+                  dispatch(actions.modalCard.toggleOpen());
+                }}
+              >
+                X
+              </ModalCardCloseBtn>
+            </div>
+            <hr />
+            <div>
+              <ModalCardSectionTitle>Description:</ModalCardSectionTitle>
+              <DescrWrapper>
+                {!isEmpty(description) && <Description data={description} />}
+              </DescrWrapper>
+              {isEmpty(description) && (
+                <AddForm
+                  submitHandler={submitDescription}
+                  buttonValue="Add description"
                 />
-              );
-            })}
-          </CommentsList>
-          <AddForm submitHandler={submitComment} buttonValue="Add comment" />
-        </div>
+              )}
+            </div>
+            <hr />
+            <div>
+              <ModalCardSectionTitle>Comments:</ModalCardSectionTitle>
+              <CommentsList>
+                {comments.map((item) => {
+                  return <StyledComment key={item.id} data={item} />;
+                })}
+              </CommentsList>
+              <AddForm
+                submitHandler={submitComment}
+                buttonValue="Add comment"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
   );

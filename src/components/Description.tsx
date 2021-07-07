@@ -1,41 +1,56 @@
 import styled from 'styled-components';
 import TextareaAutosize from 'react-textarea-autosize';
 import { TDescription } from '../types/types';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { changeDescription, removeDescription } from '../store/descriptions';
+import { actions } from '../store/ducks';
+import { Form, Field } from 'react-final-form';
 
 interface IDescriptionProps {
   data: TDescription;
 }
 
 export default function Description(props: IDescriptionProps) {
-  const [newDescrVal, setNewDescrVal] = useState(props.data.body);
   const textTextareaRef = useRef<HTMLTextAreaElement>(null);
   const dispatch = useDispatch();
 
-  function onBlurHandler(e: React.SyntheticEvent) {
-    if (newDescrVal.length === 0) {
+  function onBlurHandler(e: React.BaseSyntheticEvent) {
+    console.log('descr', e);
+
+    if (e.target.value.length === 0) {
       if (textTextareaRef.current) {
         textTextareaRef.current.focus();
       }
       return false;
     }
-    if (newDescrVal !== props.data.body && newDescrVal.length !== 0) {
-      dispatch(changeDescription({ id: props.data.id, body: newDescrVal }));
+    if (e.target.value !== props.data.body && e.target.value.length !== 0) {
+      dispatch(
+        actions.descriptions.changeDescription({
+          id: props.data.id,
+          body: e.target.value,
+        })
+      );
     }
   }
   function onKeyHandler(e: React.KeyboardEvent) {
+    console.log('descr', e);
+
     if (e.key === 'Enter') {
       // e.preventDefault();
-      if (newDescrVal.length === 0) {
+      const targetElem = e.target as HTMLTextAreaElement;
+      if (targetElem.value.length === 0) {
         if (textTextareaRef.current) {
           textTextareaRef.current.focus();
         }
         return false;
       }
-      if (newDescrVal !== props.data.body) {
-        dispatch(changeDescription({ id: props.data.id, body: newDescrVal }));
+      if (targetElem.value !== props.data.body) {
+        dispatch(
+          actions.descriptions.changeDescription({
+            id: props.data.id,
+            body: targetElem.value,
+          })
+        );
         if (textTextareaRef.current) {
           textTextareaRef.current.blur();
         }
@@ -50,16 +65,30 @@ export default function Description(props: IDescriptionProps) {
   return (
     <DescriptionItem>
       <DescriptionText>{props.data.body}</DescriptionText>
-      <DescriptionTextarea
-        ref={textTextareaRef}
-        value={newDescrVal}
-        onChange={(e) => setNewDescrVal(e.target.value)}
-        onBlur={onBlurHandler}
-        onKeyPress={onKeyHandler}
+      <Form
+        onSubmit={(val) => val}
+        initialValues={{ description: props.data.body }}
+        render={({ handleSubmit }) => {
+          return (
+            <form onSubmit={handleSubmit}>
+              <Field name="description">
+                {(props) => (
+                  <DescriptionTextarea
+                    ref={textTextareaRef}
+                    value={props.input.value}
+                    onChange={(e) => props.input.onChange(e.target.value)}
+                    onBlur={onBlurHandler}
+                    onKeyPress={onKeyHandler}
+                  />
+                )}
+              </Field>
+            </form>
+          );
+        }}
       />
       <DescriptionDeleteBtn
         onClick={() => {
-          dispatch(removeDescription(props.data.id));
+          dispatch(actions.descriptions.removeDescription(props.data.id));
         }}
       >
         X

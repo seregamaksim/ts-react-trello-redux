@@ -1,41 +1,55 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import styled from 'styled-components';
 import { TCard } from '../types/types';
 import TextareaAutosize from 'react-textarea-autosize';
-import { renameCard } from '../store/cards';
+import { actions } from '../store/ducks';
 import { useDispatch } from 'react-redux';
+import { Form, Field } from 'react-final-form';
 
 interface IModalCardTitleProps {
   dataCard: TCard;
 }
 
 export default function ModalCardTitle(props: IModalCardTitleProps) {
-  const [newCardTitle, setNewCardTitle] = useState(props.dataCard.title);
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
   const dispatch = useDispatch();
 
-  function onBlurHandler(e: React.SyntheticEvent) {
-    if (newCardTitle.length === 0) {
+  function onBlurHandler(e: React.BaseSyntheticEvent) {
+    if (e.target.value.length === 0) {
       if (titleTextareaRef.current) {
         titleTextareaRef.current.focus();
       }
       return false;
     }
-    if (newCardTitle !== props.dataCard.title && newCardTitle.length !== 0) {
-      dispatch(renameCard({ id: props.dataCard.id, title: newCardTitle }));
+    if (
+      e.target.value !== props.dataCard.title &&
+      e.target.value.length !== 0
+    ) {
+      dispatch(
+        actions.cards.renameCard({
+          id: props.dataCard.id,
+          title: e.target.value,
+        })
+      );
     }
   }
   function onKeyHandler(e: React.KeyboardEvent) {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (newCardTitle.length === 0) {
+      const targetElem = e.target as HTMLTextAreaElement;
+      if (targetElem.value.length === 0) {
         if (titleTextareaRef.current) {
           titleTextareaRef.current.focus();
         }
         return false;
       }
-      if (newCardTitle !== props.dataCard.title) {
-        dispatch(renameCard({ id: props.dataCard.id, title: newCardTitle }));
+      if (targetElem.value !== props.dataCard.title) {
+        dispatch(
+          actions.cards.renameCard({
+            id: props.dataCard.id,
+            title: targetElem.value,
+          })
+        );
         if (titleTextareaRef.current) {
           titleTextareaRef.current.blur();
         }
@@ -50,16 +64,27 @@ export default function ModalCardTitle(props: IModalCardTitleProps) {
   return (
     <>
       <StyledModalCardTitle>{props.dataCard.title}</StyledModalCardTitle>
-      <ModalCardTitleTextarea
-        rows={1}
-        spellCheck="false"
-        value={newCardTitle}
-        ref={titleTextareaRef}
-        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-          setNewCardTitle(e.target.value);
+      <Form
+        onSubmit={(val) => val}
+        initialValues={{ cardTitle: props.dataCard.title }}
+        render={({ handleSubmit }) => {
+          return (
+            <form onSubmit={handleSubmit}>
+              <Field name="cardTitle">
+                {(props) => (
+                  <ModalCardTitleTextarea
+                    spellCheck="false"
+                    value={props.input.value}
+                    ref={titleTextareaRef}
+                    onChange={(e) => props.input.onChange(e.target.value)}
+                    onBlur={onBlurHandler}
+                    onKeyPress={onKeyHandler}
+                  />
+                )}
+              </Field>
+            </form>
+          );
         }}
-        onBlur={onBlurHandler}
-        onKeyPress={onKeyHandler}
       />
     </>
   );

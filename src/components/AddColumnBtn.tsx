@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import styled from 'styled-components';
-import { addColumn } from '../store/columns';
+import { actions } from '../store/ducks';
 import { Field, Form } from 'react-final-form';
+import { IFormParams } from '../types/types';
 
 interface IAddColumnProps {}
 
@@ -13,12 +14,11 @@ export default function AddColumnBtn(props: IAddColumnProps) {
   const [isOpenPopup, setIsOpenPopup] = useState(false);
   const dispatch = useDispatch();
 
-  function addNewColumn(
-    e: IFormAddColumnValues,
-    form: { reset: () => void }
-  ): void {
-    if (e.columnTitle.length > 0) {
-      dispatch(addColumn({ id: Date.now(), title: e.columnTitle }));
+  function addNewColumn(val: IFormAddColumnValues, form: IFormParams): void {
+    if (val.columnTitle.length > 0) {
+      dispatch(
+        actions.columns.addColumn({ id: Date.now(), title: val.columnTitle })
+      );
       form.reset();
     }
   }

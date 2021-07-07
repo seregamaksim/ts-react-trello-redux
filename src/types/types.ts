@@ -18,9 +18,13 @@ export type TDescription = {
   body: string;
   cardId: number;
 };
-enum LOCALSTORAGE_KEYS {
+export enum LOCALSTORAGE_KEYS {
   userName = 'userName',
   boardColumns = 'boardColumns',
   descriptions = 'descriptions',
   comments = 'comments',
+}
+
+export interface IFormParams {
+  reset: () => void;
 }

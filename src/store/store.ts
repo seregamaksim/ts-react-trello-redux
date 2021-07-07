@@ -1,19 +1,16 @@
-import { configureStore } from '@reduxjs/toolkit';
-import columnsReducer from './columns/index';
-import cardsReducer from './cards/index';
-import commentsReducer from './comments/index';
-import descriptionsReducer from './descriptions/index';
+import { createStore } from '@reduxjs/toolkit';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import { reducer } from './ducks';
 
-export const store = configureStore({
-  reducer: {
-    columns: columnsReducer,
-    cards: cardsReducer,
-    comments: commentsReducer,
-    descriptions: descriptionsReducer,
-  },
-});
+const persistConfig = {
+  key: 'root',
+  storage,
+};
 
-// Infer the `RootState` and `AppDispatch` types from the store itself
+const persistedReducer = persistReducer(persistConfig, reducer);
+export const store = createStore(persistedReducer);
+export const persistor = persistStore(store);
+
 export type RootState = ReturnType<typeof store.getState>;
-// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;

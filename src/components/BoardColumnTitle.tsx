@@ -1,41 +1,53 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import styled from 'styled-components';
 import { TBoardColumn } from '../types/types';
 import TextareaAutosize from 'react-textarea-autosize';
-import { renameColumn } from '../store/columns/index';
+import { actions } from '../store/ducks';
 import { useDispatch } from 'react-redux';
+import { Field, Form } from 'react-final-form';
 
 interface IBoardColumnTitleProps {
   data: TBoardColumn;
 }
 
 export default function BoardColumnTitle(props: IBoardColumnTitleProps) {
-  const [newColumnTitle, setNewColumnTitle] = useState(props.data.title);
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
   const dispatch = useDispatch();
 
-  function onBlurHandler(e: React.SyntheticEvent) {
-    if (newColumnTitle.length === 0) {
+  function onBlurHandler(e: React.BaseSyntheticEvent) {
+    if (e.target.value.length === 0) {
       if (titleTextareaRef.current) {
         titleTextareaRef.current.focus();
       }
       return false;
     }
-    if (newColumnTitle !== props.data.title && newColumnTitle.length !== 0) {
-      dispatch(renameColumn({ id: props.data.id, title: newColumnTitle }));
+    if (e.target.value !== props.data.title && e.target.value.length !== 0) {
+      dispatch(
+        actions.columns.renameColumn({
+          id: props.data.id,
+          title: e.target.value,
+        })
+      );
     }
   }
   function onKeyHandler(e: React.KeyboardEvent): void | false {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (newColumnTitle.length === 0) {
+      const targetElem = e.target as HTMLTextAreaElement;
+
+      if (targetElem.value.length === 0) {
         if (titleTextareaRef.current) {
           titleTextareaRef.current.focus();
         }
         return false;
       }
-      if (newColumnTitle !== props.data.title) {
-        dispatch(renameColumn({ id: props.data.id, title: newColumnTitle }));
+      if (targetElem.value !== props.data.title) {
+        dispatch(
+          actions.columns.renameColumn({
+            id: props.data.id,
+            title: targetElem.value,
+          })
+        );
         if (titleTextareaRef.current) {
           titleTextareaRef.current.blur();
         }
@@ -50,14 +62,27 @@ export default function BoardColumnTitle(props: IBoardColumnTitleProps) {
   return (
     <>
       <StyledBoardColumnTitle>{props.data.title}</StyledBoardColumnTitle>
-      <BoardColumnTitleInput
-        value={newColumnTitle}
-        rows={1}
-        spellCheck="false"
-        ref={titleTextareaRef}
-        onChange={(e) => setNewColumnTitle(e.target.value)}
-        onBlur={onBlurHandler}
-        onKeyPress={onKeyHandler}
+      <Form
+        onSubmit={(val) => val}
+        initialValues={{ columnTitle: props.data.title }}
+        render={({ handleSubmit }) => {
+          return (
+            <form onSubmit={handleSubmit}>
+              <Field name="columnTitle">
+                {(props) => (
+                  <BoardColumnTitleInput
+                    value={props.input.value}
+                    spellCheck="false"
+                    ref={titleTextareaRef}
+                    onChange={(e) => props.input.onChange(e.target.value)}
+                    onBlur={onBlurHandler}
+                    onKeyPress={onKeyHandler}
+                  />
+                )}
+              </Field>
+            </form>
+          );
+        }}
       />
     </>
   );

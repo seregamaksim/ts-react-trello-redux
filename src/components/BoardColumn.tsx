@@ -1,37 +1,40 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 import BoardColumnCard from './BoardColumnCard';
 import BoardColumnTitle from './BoardColumnTitle';
-import { TBoardColumn, TCard, TComment } from '../types/types';
+import { IFormParams, TBoardColumn } from '../types/types';
 import { useDispatch, useSelector } from 'react-redux';
-import { removeColumn } from '../store/columns';
-import { getCardsByColumnId, addCard } from '../store/cards';
+import { actions, selectors } from '../store/ducks';
+import { Form, Field } from 'react-final-form';
+import isEmpty from '../helpers/isEmpty';
 
 interface IBoardColumnProps {
   data: TBoardColumn;
-  openModal: (arg: boolean) => void;
-  setDataCardModal: (data: TCard) => void;
   className?: string;
 }
-
+interface IFormVal {
+  cardTitle: string;
+}
 export default function BoardColumn(props: IBoardColumnProps) {
-  const cardsCurrentColumn = useSelector(getCardsByColumnId(props.data.id));
-  const [newCardValue, setNewCardValue] = useState('');
+  const cardsCurrentColumn = useSelector(
+    selectors.cards.getCardsByColumnId(props.data.id)
+  );
   const [isAddCardPopupOpen, setIsAddCardPopupOpen] = useState(false);
   const dispatch = useDispatch();
 
-  function addNewCard(e: React.SyntheticEvent): void {
-    e.preventDefault();
-    if (newCardValue.length > 0) {
-      dispatch(
-        addCard({
-          id: Date.now(),
-          title: newCardValue,
-          columnId: props.data.id,
-        })
-      );
-      setNewCardValue('');
-      setIsAddCardPopupOpen(false);
+  function addNewCard(val: IFormVal, form: IFormParams): void {
+    if (!isEmpty(val)) {
+      if (val.cardTitle.length > 0) {
+        dispatch(
+          actions.cards.addCard({
+            id: Date.now(),
+            title: val.cardTitle,
+            columnId: props.data.id,
+          })
+        );
+        setIsAddCardPopupOpen(false);
+        form.reset();
+      }
     }
   }
 
@@ -40,18 +43,17 @@ export default function BoardColumn(props: IBoardColumnProps) {
       <div>
         <BoardColumnHeader>
           <BoardColumnTitle data={props.data} />
-          <button onClick={() => dispatch(removeColumn(props.data.id))}>
+          <button
+            onClick={() =>
+              dispatch(actions.columns.removeColumn(props.data.id))
+            }
+          >
             X
           </button>
         </BoardColumnHeader>
         <BoardColumnCardsList>
           {cardsCurrentColumn.map((item) => (
-            <StyledBoardColumnCard
-              key={item.id}
-              data={item}
-              openModal={props.openModal}
-              setDataCardModal={props.setDataCardModal}
-            />
+            <StyledBoardColumnCard key={item.id} data={item} />
           ))}
         </BoardColumnCardsList>
         <footer>
@@ -62,22 +64,31 @@ export default function BoardColumn(props: IBoardColumnProps) {
           )}
           {isAddCardPopupOpen && (
             <div>
-              <form onSubmit={addNewCard}>
-                <BoardColumnFormInput
-                  type="text"
-                  name="card-title"
-                  value={newCardValue}
-                  placeholder="Enter card title"
-                  onChange={(e) => setNewCardValue(e.target.value)}
-                />
-                <button>Add</button>
-                <button
-                  type="button"
-                  onClick={() => setIsAddCardPopupOpen(false)}
-                >
-                  Close
-                </button>
-              </form>
+              <Form
+                onSubmit={addNewCard}
+                render={({ handleSubmit }) => {
+                  return (
+                    <form onSubmit={handleSubmit}>
+                      <Field type="text" name="cardTitle">
+                        {(props) => (
+                          <BoardColumnFormInput
+                            {...props.input}
+                            placeholder="Enter card title"
+                          />
+                        )}
+                      </Field>
+
+                      <button type="submit">Add</button>
+                      <button
+                        type="button"
+                        onClick={() => setIsAddCardPopupOpen(false)}
+                      >
+                        Close
+                      </button>
+                    </form>
+                  );
+                }}
+              />
             </div>
           )}
         </footer>

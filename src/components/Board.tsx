@@ -1,31 +1,21 @@
 import BoardColumn from './BoardColumn';
 import AddColumnBtn from './AddColumnBtn';
 import styled from 'styled-components';
-import { TBoardColumn, TCard, TComment } from '../types/types';
 import { useSelector } from 'react-redux';
-import { selectColumns } from '../store/columns';
+import { selectColumns } from '../store/columns/selectors';
 
-interface IBoardProps {
-  openModal: (arg: boolean) => void;
-  setDataCard: (data: TCard) => void;
-}
+interface IBoardProps {}
 
 export default function Board(props: IBoardProps) {
   const boardColumns = useSelector(selectColumns);
+
   return (
     <BoardWrap>
       <BoardColumns>
         {boardColumns &&
-          boardColumns.map((item) => {
-            return (
-              <StyledBoardColumn
-                key={item.id}
-                data={item}
-                openModal={props.openModal}
-                setDataCardModal={props.setDataCard}
-              />
-            );
-          })}
+          boardColumns.map((item) => (
+            <StyledBoardColumn key={item.id} data={item} />
+          ))}
       </BoardColumns>
 
       <AddColumnBtn />

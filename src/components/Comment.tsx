@@ -1,43 +1,54 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import styled from 'styled-components';
 import { TComment } from '../types/types';
 import TextareaAutosize from 'react-textarea-autosize';
-import { useDispatch } from 'react-redux';
-import { changeComment, removeComment } from '../store/comments';
+import { useDispatch, useSelector } from 'react-redux';
+import { actions, selectors } from '../store/ducks';
+import { Form, Field } from 'react-final-form';
 
 interface ICommentProps {
   data: TComment;
-  userName: string;
   className?: string;
 }
 
 export default function Comment(props: ICommentProps) {
-  const [commentText, setCommentText] = useState(props.data.body);
   const textTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const userName = useSelector(selectors.userName.selectUserName);
   const dispatch = useDispatch();
 
-  function onBlurHandler(e: React.SyntheticEvent) {
-    if (commentText.length === 0) {
+  function onBlurHandler(e: React.BaseSyntheticEvent) {
+    if (e.target.value.length === 0) {
       if (textTextareaRef.current) {
         textTextareaRef.current.focus();
       }
       return false;
     }
-    if (commentText !== props.data.body && commentText.length !== 0) {
-      dispatch(changeComment({ id: props.data.id, body: commentText }));
+    if (e.target.value !== props.data.body && e.target.value.length !== 0) {
+      dispatch(
+        actions.comments.changeComment({
+          id: props.data.id,
+          body: e.target.value,
+        })
+      );
     }
   }
   function onKeyHandler(e: React.KeyboardEvent) {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (commentText.length === 0) {
+      const targetElem = e.target as HTMLTextAreaElement;
+      if (targetElem.value.length === 0) {
         if (textTextareaRef.current) {
           textTextareaRef.current.focus();
         }
         return false;
       }
-      if (commentText !== props.data.body) {
-        dispatch(changeComment({ id: props.data.id, body: commentText }));
+      if (targetElem.value !== props.data.body) {
+        dispatch(
+          actions.comments.changeComment({
+            id: props.data.id,
+            body: targetElem.value,
+          })
+        );
         if (textTextareaRef.current) {
           textTextareaRef.current.blur();
         }
@@ -51,21 +62,38 @@ export default function Comment(props: ICommentProps) {
   return (
     <CommentItem className={props.className}>
       <CommentText>{props.data.body}</CommentText>
-      <CommentTextTextarea
-        rows={1}
-        spellCheck="false"
-        ref={textTextareaRef}
-        value={commentText}
-        onChange={(e) => {
-          setCommentText(e.target.value);
+      <Form
+        onSubmit={(val) => val}
+        initialValues={{ comment: props.data.body }}
+        render={({ handleSubmit }) => {
+          return (
+            <form onSubmit={handleSubmit}>
+              <Field name="comment">
+                {(props) => (
+                  <CommentTextTextarea
+                    rows={1}
+                    spellCheck="false"
+                    ref={textTextareaRef}
+                    value={props.input.value}
+                    onChange={(e) => {
+                      props.input.onChange(e.target.value);
+                    }}
+                    onBlur={onBlurHandler}
+                    onKeyPress={onKeyHandler}
+                  />
+                )}
+              </Field>
+            </form>
+          );
         }}
-        onBlur={onBlurHandler}
-        onKeyPress={onKeyHandler}
-      ></CommentTextTextarea>
+      />
+
       <CommentAuthor>
-        Author: <span>{props.userName}</span>
+        Author: <span>{userName}</span>
       </CommentAuthor>
-      <CommentDeleteBtn onClick={() => dispatch(removeComment(props.data.id))}>
+      <CommentDeleteBtn
+        onClick={() => dispatch(actions.comments.removeComment(props.data.id))}
+      >
         X
       </CommentDeleteBtn>
     </CommentItem>
