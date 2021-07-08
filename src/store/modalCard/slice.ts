@@ -1,6 +1,5 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TCard } from '../../types/types';
-import action from './action';
 
 export interface IModalCardState {
   isOpen: boolean;
@@ -14,7 +13,14 @@ const initialState: IModalCardState = {
 const modalCardSlice = createSlice({
   name: 'modalCard',
   initialState,
-  reducers: action,
+  reducers: {
+    toggleOpen(state) {
+      state.isOpen = !state.isOpen;
+    },
+    setDataCard(state, { payload }: PayloadAction<TCard>) {
+      state.dataCard = payload;
+    },
+  },
 });
 
 const actions = { ...modalCardSlice.actions };
